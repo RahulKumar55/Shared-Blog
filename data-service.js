@@ -2,6 +2,8 @@ let fs = require("fs");
 
 let emp = [];
 let dep = [];
+let cat = [];
+let pos = [];
 
 module.exports.initialize = function(){
     return new Promise((resolve, reject) => {
@@ -16,6 +18,18 @@ module.exports.initialize = function(){
                 (err, data) => {
                     if (err)throw "Departments failed";
                     dep = JSON.parse(data);
+
+                });
+                fs.readFile("./data/posts.json", 'utf8',
+                (err, data) => {
+                    if (err) throw "Posts failed";
+                    pos = JSON.parse(data);
+                    
+                });
+            fs.readFile("./data/categories.json", 'utf8',
+                (err, data) => {
+                    if (err)throw "Categories failed";
+                    cat = JSON.parse(data);
 
                 });
         } catch (err) {
@@ -57,3 +71,72 @@ module.exports.getDepartments = function () {
         resolve(dep);
     });
 }
+
+
+//////////////////////////////////////////////////
+
+
+module.exports.getAllPosts = function(){
+    return new Promise((resolve, reject) => {
+        if (pos.length === 0) {
+            reject("No results returned!");
+        }
+        resolve(pos);
+    });
+}
+
+module.exports.getCategories = function () {
+    return new Promise((resolve, reject) => {
+        if (cat.length === 0) {
+            reject("No results returned!");
+        }
+        resolve(cat);
+    });
+}
+
+
+module.exports.addPost = (postData) => {
+    return new Promise((resolve,reject) => {
+        postData.published === "undefined" ? postData.published = false : postData.published = true;
+        postData.id = pos.length + 1;
+        pos.push(postData);
+        if (pos.length === 0) {
+            reject ('no results');
+        }
+        else {
+            resolve(pos);
+        }
+    })
+};
+
+module.exports.getPostsByCategory = function(category){
+    return new Promise((resolve,reject) => {
+        var catepos = pos.filter(post => post.category == category);
+        if (catepos.length == 0) {
+            reject('no results');
+        }
+        resolve(catepos);
+    })
+};
+
+module.exports.getPostsByMinDate = function(minDateStr){
+    return new Promise((resolve, reject) => {
+        var datepos = pos.filter( post => new Date(post.postDate) >= new Date(minDateStr));
+        if (datepos.length == 0) {
+            reject('no results');
+        }
+        resolve(datepos);
+    })
+
+};
+
+
+module.exports.getPostsById = function(id){
+    return new Promise((resolve,reject) => {
+        var catepos = pos.filter(post => post.id == id);
+        if (catepos.length == 0) {
+            reject('no results');
+        }
+        resolve(catepos);
+    })
+};
