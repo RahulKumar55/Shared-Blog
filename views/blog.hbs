@@ -10,7 +10,7 @@
             {{/safeHTML}}
             <br /><br />
             <strong>Category:</strong> {{data.post.category}}<br />
-            <strong>Last Updated:</strong> {{data.post.postDate}}
+            <strong>Last Updated:</strong> {{#formatDate data.post.postDate}}{{/formatDate}}
 
         </article>
         {{else}}
@@ -29,8 +29,8 @@
 
         <ul class="list-group">
             {{#each data.posts}}
-            <a href="/blog/{{id}}?category={{../viewingCategory}}"  class="list-group-item">{{title}}</a>
-            {{/each}}
+            <a href="/blog/{{this.id}}?category={{../viewingCategory}}" class="list-group-item">{{title}}</a>
+          {{/each}}
         </ul>
         {{/if}}
 
@@ -39,9 +39,8 @@
 
         <ul class="list-group">
             {{#each data.categories}}
-           <a href="/blog?category={{id}}" class="list-group-item">{{category}}</a>
-            
-            {{/each}}
+           <a href="/blog?category={{id}}"  class="list-group-item">{{category}}</a>
+        {{/each}}
         </ul>
         {{/if}}
     </aside>
