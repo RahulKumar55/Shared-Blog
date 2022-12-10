@@ -3,7 +3,7 @@
 *  I declare that this assignment is my own work in accordance with Seneca  Academic Policy.  No part *  of this assignment has been copied manually or electronically from any other source 
 *  (including 3rd party web sites) or distributed to other students.
 * 
-*  Name: Rahul Kumar Student ID: 157197211 Date: 11\20\2022
+*  Name: Rahul Kumar Student ID: 157197211 Date: 12\10\2022
 *
 *  Online (Heroku) Link: https://mysterious-brook-32823.herokuapp.com/
 *
@@ -16,6 +16,8 @@ let express = require("express");
 let app = express();
 let path = require("path");
 let blog_service = require("./blog-service");
+let authData = require("./auth.service");
+let clientSessions = require("client-sessions");
 
 const multer = require("multer");
 const cloudinary = require('cloudinary').v2;
@@ -35,6 +37,28 @@ const stripJs = require('strip-js');
 
 const { json } = require("sequelize");
 const e = require("express");
+
+app.use(clientSessions({
+    cookieName: "session", 
+    secret: "Assignment_6", 
+    duration: 2 * 60 * 1000, // duration of the session in milliseconds (2 minutes)
+    activeDuration: 1000 * 60 // the session will be extended by this many ms each request (1 minute)
+  }));
+
+app.use(function(req, res, next) {
+    res.locals.session = req.session;
+    next();
+  });
+
+  function ensureLogin(req, res, next) {
+    if (!req.session.user) {
+      res.redirect("/login");
+    } else {
+      next();
+    }
+  }
+  
+
 app.engine('.hbs', exphbs.engine({ extname: '.hbs',helpers: { 
     navLink: function(url, options){
         return '<li' + 
@@ -195,7 +219,7 @@ app.get("/about", function(req,res){
     });
 });
 
-app.get("/posts/add", function(req,res){
+app.get("/posts/add", ensureLogin, function(req,res){
     blog_service.getCategories().then((data)=>{
         res.render("addPost", {categories: data});
       }).catch((err)=>{
@@ -206,7 +230,7 @@ app.get("/posts/add", function(req,res){
 
 
 
-app.get("/posts", function(req,res){
+app.get("/posts", ensureLogin, function(req,res){
     if(req.query.category){
         blog_service.getPostsByCategory(req.query.category).then((data) => {
           if(data.length >0){
@@ -241,7 +265,7 @@ app.get("/posts", function(req,res){
     }
 });
 
-app.get("/posts/:val", function(req, res){
+app.get("/posts/:val", ensureLogin, function(req, res){
     blog_service.getPostById(req.params.val).then((data) =>{
         res.render("posts", {posts: data});
     }).catch((err) =>{
@@ -249,7 +273,7 @@ app.get("/posts/:val", function(req, res){
     })
 })
 
-app.get("/posts/delete/:id", function(req,res){
+app.get("/posts/delete/:id", ensureLogin, function(req,res){
     blog_service.deletePostById(req.params.id).then((data) =>{
         res.redirect("/posts");
     }).catch((err) =>{
@@ -262,7 +286,7 @@ app.get("/posts/delete/:id", function(req,res){
 
 
 
-app.post('/posts/add', upload.single("featureImage"), function (req, res) {
+app.post('/posts/add', ensureLogin, upload.single("featureImage"), function (req, res) {
     let streamUpload = (req) => {
         return new Promise((resolve, reject) => {
             let stream = cloudinary.uploader.upload_stream(
@@ -307,7 +331,7 @@ app.post('/posts/add', upload.single("featureImage"), function (req, res) {
 
 
 
-app.get("/categories", function(req,res){
+app.get("/categories", ensureLogin, function(req,res){
     blog_service.getCategories().then((data) => {
         if(data.length >0){
           res.render("categories", {categories: data});}
@@ -321,13 +345,13 @@ app.get("/categories", function(req,res){
     });
 });
 
-app.get("/categories/add", function(req,res){
+app.get("/categories/add", ensureLogin, function(req,res){
     res.render("addCategory", {
         layout: 'main'
     });
 });
 
-app.post("/categories/add", function(req,res){
+app.post("/categories/add", ensureLogin, function(req,res){
     blog_service.addCategory(req.body).then(() => {
         res.redirect('/categories')
     }).catch((error) => {
@@ -335,7 +359,7 @@ app.post("/categories/add", function(req,res){
     });
 });
 
-app.get("/categories/delete/:id", function(req,res){
+app.get("/categories/delete/:id", ensureLogin, function(req,res){
     blog_service.deleteCategoryById(req.params.id).then((data) => {
         res.redirect("/categories")
   
@@ -346,12 +370,70 @@ app.get("/categories/delete/:id", function(req,res){
 });
 
 
+
+
+app.get('/login',(req,res)=>{
+    res.render("login", {
+        layout: 'main'
+    });
+});
+
+app.get('/register',(req,res)=>{
+    res.render("register", {
+        layout: 'main'
+    });
+});
+
+app.post('/register',(req,res)=>{
+    authData.registerUser(req.body).then((data) => {
+        res.render('register', {
+            layout: "main",
+            successMessage: "USER CREATED"
+        })
+    }).catch((error) => {
+        res.render('register', {
+            layout: "main",
+            errorMessage: error,
+            userName: req.body.userName
+        })
+    })
+});
+
+app.post('/login',(req,res)=>{
+    req.body.userAgent = req.get('User-Agent');
+    authData.checkUser(req.body)
+    .then((user)=>{
+        req.session.user ={
+            userName: user.userName,
+            email: user.email,
+            loginHistory: user.loginHistory
+        }
+        res.redirect('/posts');
+    })
+    .catch((err)=>{
+        res.render("login", {errorMessage:err, userName:req.body.userName} )
+    })
+});
+
+app.get('/logout',(req,res)=>{
+    req.session.reset();
+    res.redirect("/");
+});
+
+app.get('/userHistory', ensureLogin,(req,res)=>{
+    res.render("userHistory", {
+        layout: 'main'
+    });
+});
+
+
 app.get("/*", function(req,res){
     res.status(404).render("404", {layout: 'main'})
 });
 
 
-blog_service.initialize().then(() => {
+blog_service.initialize().then(authData.initialize)
+.then(() => {
     app.listen(HTTP_PORT, onHttpStart);
 }).catch(() => {
     console.log("Unable to load data");

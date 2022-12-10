@@ -111,7 +111,7 @@ module.exports.getPostById = function (id) {
                 id: id
             }
         }).then(data=>{
-            resolve(data);
+            resolve(data                        );
         }).catch(err=>{
             reject("no results returned");
         });
