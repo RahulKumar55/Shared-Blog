@@ -1,22 +1,11 @@
-/*********************************************************************************
-*  WEB322 – Assignment 05
-*  I declare that this assignment is my own work in accordance with Seneca  Academic Policy.  No part *  of this assignment has been copied manually or electronically from any other source 
-*  (including 3rd party web sites) or distributed to other students.
-* 
-*  Name: Rahul Kumar Student ID: 157197211 Date: 12\10\2022
-*
-*  Online (Heroku) Link: https://mysterious-brook-32823.herokuapp.com/
-*
-********************************************************************************/ 
-
-
-
 let HTTP_PORT = process.env.PORT || 8080;
 let express = require("express");
 let app = express();
 let path = require("path");
-let blog_service = require("./blog-service");
-let authData = require("./auth.service");
+const dotenv = require("dotenv");
+dotenv.config();
+let blog_service = require("../blog-service");
+let authData = require("../auth.service");
 let clientSessions = require("client-sessions");
 
 const multer = require("multer");
@@ -24,9 +13,9 @@ const cloudinary = require('cloudinary').v2;
 const streamifier = require('streamifier');
 
 cloudinary.config({
-    cloud_name: 'dmpvhucth',
-    api_key: '515152138723923',
-    api_secret: 'uPw2gm_P4CgEu0Zft3E1Iiz-i58',
+    cloud_name: process.env.cloudinary_cloudName,
+    api_key: process.env.cloudinary_apiKey,
+    api_secret: process.env.cloudinary_apiSecret,
     secure: true
 });
 

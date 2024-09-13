@@ -1,7 +1,7 @@
 const Sequelize = require('sequelize');
 
-var sequelize = new Sequelize('d8dbut8aiua9gk', 'ctkjdmjpfzgdjl', '92b907e1ccb24a697067b0d36cdc08b891eea270b5ec2affae324833f2b7d9bd', {
-    host: 'ec2-54-159-22-90.compute-1.amazonaws.com',
+var sequelize = new Sequelize(process.env.SQDB, process.env.SQuser, process.env.SQPassword, {
+    host: process.env.SQHost,
     dialect: 'postgres',
     port: 5432,
     dialectOptions: {
