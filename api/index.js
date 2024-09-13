@@ -201,13 +201,6 @@ app.get('/blog/:id', async (req, res) => {
 
 
 
-
-app.get("/about", function(req,res){
-    res.render('about', {
-        layout: 'main'
-    });
-});
-
 app.get("/posts/add", ensureLogin, function(req,res){
     blog_service.getCategories().then((data)=>{
         res.render("addPost", {categories: data});
