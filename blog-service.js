@@ -3,6 +3,7 @@ const Sequelize = require('sequelize');
 var sequelize = new Sequelize(process.env.SQDB, process.env.SQuser, process.env.SQPassword, {
     host: process.env.SQHost,
     dialect: 'postgres',
+    dialectModule: require('pg'),
     port: 5432,
     dialectOptions: {
         ssl: { rejectUnauthorized: false }
